@@ -1,8 +1,8 @@
+const ITCH_DOMAIN = "itch.io";
 /**
  * @typedef GameDataOptions
  * @property {string} user
  * @property {string} game
- * @property {(data) => void} onComplete
  * @property {string} secret
  */
 
@@ -25,67 +25,57 @@
  *  end_date: string,
  *  title: string,
  *  rate: number
- * }?} sale
+ * } | boolean} sale
  */
 
 /**
  * 
  * @param {GameDataOptions} opts 
+ * @returns {Promise<GameData>}
  */
-export function getGameData(opts) {
-  var domain, url, xhr;
-  if (opts == null) {
-    opts = {};
-  }
-  domain = opts.domain || "itch.io";
+export async function getGameData(opts) {
+  opts = opts || {};
+
   if (!opts.user) {
     throw new Error("Missing user");
   }
   if (!opts.game) {
     throw new Error("Missing game");
   }
-  url = "https://" + opts.user + "." + domain + "/" + opts.game + "/data.json";
-  if (opts.secret) {
-    url = url + "?secret=" + opts.secret;
-  }
-  xhr = new XMLHttpRequest();
-  xhr.open("GET", url);
-  xhr.addEventListener("readystatechange", (function (_this) {
-    return function (e) {
-      var game;
-      if (xhr.readyState !== 4) {
-        return;
-      }
-      game = JSON.parse(xhr.responseText);
-      return typeof opts.onComplete === "function" ? opts.onComplete(game) : void 0;
-    };
-  })(this));
-  return xhr.send();
+
+  const secretParam = opts.secret ? `?secret=${opts.secret}` : '';
+  const url = `https://${opts.user}.${ITCH_DOMAIN}/${opts.game}/data.json${secretParam}`;
+
+  return await fetch(url).then(res => res.json())
 };
 
-export function attachBuyButton(el, opts) {
-  var domain, height, left, top, width;
-  if (opts == null) {
-    opts = {};
-  }
-  
-  domain = opts.domain || "itch.io";
+export function attachBuyButton(element, opts) {
+  var height, left, top, width;
+  opts = opts || {};
+
   width = opts.width || 680;
   height = opts.height || 400;
   top = (window.height - height) / 2;
   left = (window.width - width) / 2;
+  
   if (!opts.user) {
     throw new Error("Missing user");
   }
   if (!opts.game) {
     throw new Error("Missing game");
   }
-  return el.onclick = function () {
-    var w;
-    w = window.open("https://" + opts.user + "." + domain + "/" + opts.game + "/purchase?popup=1", "purchase", "scrollbars=1, resizable=no, width=" + width + ", height=" + height + ", top=" + top + ", left=" + left);
-    if (typeof w.focus === "function") {
-      w.focus();
+
+  return element.addEventListener('click', function () {
+    var newWindow;
+    newWindow = window.open(
+      `https://${opts.user}.${ITCH_DOMAIN}/${opts.game}/purchase?popup=1`,
+      "purchase", "scrollbars=1, resizable=no, width=" + width +
+      ", height=" + height + ", top=" + top + ", left=" + left
+    );
+
+    if (typeof newWindow.focus === "function") {
+      newWindow.focus();
     }
     return false;
-  };
+  });
 };
