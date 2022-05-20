@@ -46,7 +46,7 @@ export async function getGameData(opts) {
   const secretParam = opts.secret ? `?secret=${opts.secret}` : '';
   const url = `https://${opts.user}.${ITCH_DOMAIN}/${opts.game}/data.json${secretParam}`;
 
-  return await fetch(url).then(res => res.json())
+  return fetch(url).then(res => res.json())
 };
 
 export function attachBuyButton(element, opts) {
